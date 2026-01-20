@@ -1,3 +1,4 @@
+"use client";
 import React, { FC } from "react";
 
 interface InputProps {
@@ -6,6 +7,7 @@ interface InputProps {
   name?: string;
   placeholder?: string;
   defaultValue?: string | number;
+  value?: string | number;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   className?: string;
   min?: string;
@@ -22,6 +24,7 @@ const Input: FC<InputProps> = ({
   id,
   name,
   placeholder,
+  value,
   defaultValue,
   onChange,
   className = "",
@@ -47,13 +50,14 @@ const Input: FC<InputProps> = ({
     inputClasses += ` bg-transparent text-gray-800 border-gray-300 focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800`;
   }
 
-  return (
+return (
     <div className="relative">
       <input
         type={type}
         id={id}
         name={name}
         placeholder={placeholder}
+        value={value} // TAMBAHKAN BARIS INI agar bisa diketik
         defaultValue={defaultValue}
         onChange={onChange}
         min={min}

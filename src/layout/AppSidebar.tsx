@@ -59,10 +59,12 @@ const navItems: NavItem[] = [
     name: "Data Master",
     icon: <TableIcon />,
     subItems: [
-      { name: "Data Admin", path: "/data/admin" },
+      //{ name: "Data Admin", path: "/data/admin" },
       { name: "Data Supplier", path: "/data/supplier" },
       { name: "Data Produk", path: "/data/produk" },
-      { name: "Data User", path: "/data/user" },
+      { name: "Data Unit", path: "/data/unit" },
+      { name: "Data Warehouse", path: "/data/warehouse" },
+     // { name: "Data User", path: "/data/user" },
     ],
   },
   {
