@@ -35,16 +35,22 @@ const navItems: NavItem[] = [
     icon: <BoxIcon />,
     name: "Pembelian",
     subItems: [
-      { name: "Pesanan Pembelian (PO)", path: "/pembelian/po" },
-      { name: "Penerimaan Barang", path: "/pembelian/penerimaan" },
+      { name: "Dashboard Stok", path: "/inventory/dashboard" },
+      { name: "Permintaan Stok", path: "/inventory/request" },
+      { name: "Penyesuaian Stok", path: "/inventory/adjustment" },
+      { name: "Stok Awal", path: "/inventory/initial" },
+      { name: "Barang Keluar", path: "/inventory/stock-out" },
     ],
   },
   {
     icon: <BoxCubeIcon />,
     name: "Persediaan",
     subItems: [
-      { name: "Stok Barang", path: "/persediaan/stok" },
-      { name: "Mutasi Barang", path: "/persediaan/mutasi" },
+      { name: "Dashboard Stok", path: "/inventory/dashboard" },
+      { name: "Permintaan Stok", path: "/inventory/request" },
+      { name: "Penyesuaian Stok", path: "/inventory/adjustment" },
+      { name: "Stok Awal", path: "/inventory/initial" },
+      //{ name: "Barang Keluar", path: "/inventory/stock-out" },
     ],
   },
   {

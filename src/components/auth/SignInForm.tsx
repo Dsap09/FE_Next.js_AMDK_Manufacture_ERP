@@ -111,15 +111,15 @@ export default function SignInForm() {
             disabled={loading} 
             className="w-full h-12 rounded-xl bg-brand-500 text-white shadow-lg shadow-brand-500/30 hover:bg-brand-600 transition-all font-bold text-base"
           >
-            {loading ? "Verifying..." : "Sign In to Dashboard"}
+            {loading ? "Verifying..." : "Sign In"}
           </Button>
 
-          <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-8">
+          {/* <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-8">
             Don't have an account?{" "}
             <Link href="/signup" className="font-bold text-brand-500 hover:text-brand-600">
               Create account
             </Link>
-          </p>
+          </p> */}
         </form>
       </div>
     </div>
