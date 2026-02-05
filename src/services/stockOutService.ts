@@ -1,20 +1,21 @@
 import axiosInstance from "@/lib/axios";
 
 export const stockOutService = {
-  getAll: async () => {
-    const response = await axiosInstance.get("/api/v1/stock-outs");
+  // Mengambil data dari endpoint stock-requests
+  getPendingApproval: async () => {
+    const response = await axiosInstance.get("/api/v1/stock-requests");
+    // Kita filter di service atau di component agar hanya status 'approved' yang tampil
     return response.data;
   },
-  create: async (data: any) => {
-    const response = await axiosInstance.post("/api/v1/stock-outs", data);
-    return response.data;
-  },
-  update: async (id: number, data: any) => {
-    const response = await axiosInstance.put(`/api/v1/stock-outs/${id}`, data);
-    return response.data;
-  },
-  delete: async (id: number) => {
-    const response = await axiosInstance.delete(`/api/v1/stock-outs/${id}`);
+
+  // Simpan transaksi stok keluar
+  create: async (payload: { 
+    stock_request_id: number; 
+    warehouse_id: number; 
+    out_date: string; 
+    notes?: string 
+  }) => {
+    const response = await axiosInstance.post("/api/v1/stock-outs", payload);
     return response.data;
   }
 };

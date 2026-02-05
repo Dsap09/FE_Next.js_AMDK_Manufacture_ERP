@@ -35,11 +35,9 @@ const navItems: NavItem[] = [
     icon: <BoxIcon />,
     name: "Pembelian",
     subItems: [
-      { name: "Dashboard Stok", path: "/inventory/dashboard" },
-      { name: "Permintaan Stok", path: "/inventory/request" },
-      { name: "Penyesuaian Stok", path: "/inventory/adjustment" },
-      { name: "Stok Awal", path: "/inventory/initial" },
-      { name: "Barang Keluar", path: "/inventory/stock-out" },
+        { name: "Purchase Request", path: "/purchasing/purchase-request" },
+        { name: "Purchase Request Item", path: "/purchasing/Purchase-Request-Item" },
+        { name: "Purchase Order", path: "/purchasing/purchase-order"},
     ],
   },
   {
@@ -49,8 +47,11 @@ const navItems: NavItem[] = [
       { name: "Dashboard Stok", path: "/inventory/dashboard" },
       { name: "Permintaan Stok", path: "/inventory/request" },
       { name: "Penyesuaian Stok", path: "/inventory/adjustment" },
-      { name: "Stok Awal", path: "/inventory/initial" },
-      //{ name: "Barang Keluar", path: "/inventory/stock-out" },
+      { name: "Stok Awal", path: "/inventory/stock-initial" },
+      { name: "Stok Keluar", path: "/inventory/stock-out" },
+      { name: "Bahan Baku", path: "/inventory/raw-materials" },
+      { name: "Bahan Baku Masuk", path: "/inventory/raw-materials-in"},
+      { name: "Bahan Baku Keluar", path: "/inventory/raw-materials-out"},
     ],
   },
   {

@@ -16,7 +16,7 @@ export default function ProductTable() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const res = await productService.getAllProducts();
+      const res = await productService.getAll();
       setProducts(Array.isArray(res) ? res : res.data || []);
     } catch (error) {
       console.error("Gagal load data");

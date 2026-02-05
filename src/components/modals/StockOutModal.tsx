@@ -1,132 +1,130 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { stockOutService } from "@/services/stockOutService";
-import { stockRequestService } from "@/services/stockRequestService";
-// Pastikan kamu punya warehouseService atau ganti dengan axios langsung
-import axiosInstance from "@/lib/axios"; 
+import { warehouseService } from "@/services/warehouseService";
 
-export default function StockOutModal({ isOpen, onClose, onSave, initialData }: any) {
+export default function StockOutProcessModal({ isOpen, onClose, requestData, onSuccess }: any) {
+  const [warehouses, setWarehouses] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    stock_request_id: "",
     warehouse_id: "",
     out_date: new Date().toISOString().split("T")[0],
     notes: ""
   });
 
-  const [requests, setRequests] = useState([]);
-  const [warehouses, setWarehouses] = useState([]);
-
   useEffect(() => {
     if (isOpen) {
-      // Ambil data untuk dropdown
-      stockRequestService.getAll().then((res: any) => {
-        const data = Array.isArray(res) ? res : res.data || [];
-        // Opsional: Hanya tampilkan permintaan yang sudah 'approved'
-        setRequests(data.filter((r: any) => r.status === 'approved' || r.id === initialData?.stock_request_id));
+      // Ambil data gudang dari backend
+      warehouseService.getAll().then((res) => {
+        setWarehouses(Array.isArray(res) ? res : res.data || []);
       });
-
-      axiosInstance.get("/api/v1/warehouses").then((res: any) => {
-        setWarehouses(res.data?.data || res.data || []);
-      });
-
-      if (initialData) {
-        setFormData({
-            stock_request_id: initialData.stock_request_id,
-            warehouse_id: initialData.warehouse_id,
-            out_date: initialData.out_date,
-            notes: initialData.notes || ""
-        });
-      } else {
-        setFormData({
-            stock_request_id: "",
-            warehouse_id: "",
-            out_date: new Date().toISOString().split("T")[0],
-            notes: ""
-        });
-      }
+      
+      // Reset form dan berikan catatan default jika ada data request
+      setFormData(prev => ({
+        ...prev,
+        warehouse_id: "", // Reset agar user memilih ulang
+        notes: requestData ? `Pengeluaran barang untuk permintaan #${requestData.request_number}` : ""
+      }));
     }
-  }, [initialData, isOpen]);
-
-  const handleSubmit = async () => {
-    try {
-      if (initialData) {
-        await stockOutService.update(initialData.id, formData);
-      } else {
-        await stockOutService.create(formData);
-      }
-      onSave();
-      onClose();
-    } catch (error) {
-      alert("Gagal menyimpan data barang keluar. Pastikan semua field terisi.");
-    }
-  };
+  }, [isOpen, requestData]);
 
   if (!isOpen) return null;
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Validasi sederhana di sisi client
+    if (!formData.warehouse_id) return alert("Pilih gudang sumber terlebih dahulu!");
+    if (!requestData?.id) return alert("ID Permintaan tidak ditemukan. Silakan ulangi.");
+
+    setLoading(true);
+    try {
+      // Pastikan semua key sesuai dengan $request->validate() di StockOutController
+      const payload = {
+        stock_request_id: Number(requestData.id), // Pastikan mengirim angka
+        warehouse_id: Number(formData.warehouse_id), // Pastikan mengirim angka
+        out_date: formData.out_date,
+        notes: formData.notes
+      };
+
+      console.log("Mengirim payload:", payload); // Debugging: Cek data di console browser
+
+      await stockOutService.create(payload);
+      
+      alert("Stok berhasil dikeluarkan!");
+      onSuccess(); // Refresh tabel di halaman utama
+      onClose();
+    } catch (error: any) {
+      // Jika error 422, tampilkan detail error dari Laravel
+      const apiErrors = error.response?.data?.errors;
+      if (apiErrors) {
+        console.error("Validation Errors:", apiErrors);
+        alert(`Gagal: ${Object.values(apiErrors).flat().join(", ")}`);
+      } else {
+        alert(error.response?.data?.message || "Terjadi kesalahan sistem.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
-        <h3 className="mb-6 text-xl font-bold">
-          {initialData ? "Edit Catatan Keluar" : "Catat Barang Keluar"}
-        </h3>
+      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-gray-900">
+        <h3 className="text-lg font-bold mb-6 border-b pb-2 uppercase text-gray-700">Konfirmasi Stok Keluar</h3>
         
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Referensi Permintaan (Approved)</label>
-            <select 
-              className="w-full border p-2 rounded-lg text-sm"
-              value={formData.stock_request_id}
-              onChange={(e) => setFormData({...formData, stock_request_id: e.target.value})}
-            >
-              <option value="">Pilih No. Permintaan</option>
-              {requests.map((req: any) => (
-                <option key={req.id} value={req.id}>REQ-{req.id} ({req.product_name || 'Multi-item'})</option>
-              ))}
-            </select>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="bg-blue-50 p-3 rounded-lg text-blue-800 text-xs font-medium border border-blue-100 mb-4">
+            Memproses Request: <span className="font-bold">{requestData?.request_number}</span>
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Gudang Sumber</label>
+            <label className="block text-[10px] font-bold uppercase text-gray-500 mb-1">Pilih Gudang Sumber</label>
             <select 
-              className="w-full border p-2 rounded-lg text-sm"
+              className="w-full border-2 border-gray-100 p-2.5 rounded-lg text-sm focus:border-blue-500 outline-none"
               value={formData.warehouse_id}
               onChange={(e) => setFormData({...formData, warehouse_id: e.target.value})}
+              required
             >
-              <option value="">Pilih Gudang</option>
-              {warehouses.map((wh: any) => (
-                <option key={wh.id} value={wh.id}>{wh.name}</option>
+              <option value="">-- Pilih Gudang --</option>
+              {warehouses.map((w: any) => (
+                <option key={w.id} value={w.id}>{w.name}</option>
               ))}
             </select>
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Tanggal Keluar</label>
+            <label className="block text-[10px] font-bold uppercase text-gray-500 mb-1">Tanggal Keluar</label>
             <input 
               type="date" 
-              className="w-full border p-2 rounded-lg text-sm" 
-              value={formData.out_date} 
-              onChange={(e) => setFormData({...formData, out_date: e.target.value})} 
+              className="w-full border-2 border-gray-100 p-2.5 rounded-lg text-sm"
+              value={formData.out_date}
+              onChange={(e) => setFormData({...formData, out_date: e.target.value})}
+              required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Catatan Tambahan</label>
+            <label className="block text-[10px] font-bold uppercase text-gray-500 mb-1">Catatan</label>
             <textarea 
-              className="w-full border p-2 rounded-lg text-sm" 
-              rows={3} 
-              value={formData.notes} 
+              className="w-full border-2 border-gray-100 p-2.5 rounded-lg text-sm focus:border-blue-500 outline-none"
+              rows={2}
+              value={formData.notes}
               onChange={(e) => setFormData({...formData, notes: e.target.value})}
-              placeholder="Contoh: Untuk keperluan produksi mesin A"
             />
           </div>
-        </div>
 
-        <div className="mt-8 flex justify-end gap-3">
-          <button onClick={onClose} className="text-gray-500 text-sm font-bold px-4">Batal</button>
-          <button onClick={handleSubmit} className="bg-red-600 text-white px-6 py-2 rounded-lg font-bold text-sm">
-            Simpan Data
-          </button>
-        </div>
+          <div className="mt-8 flex justify-end gap-3 pt-4 border-t">
+            <button type="button" onClick={onClose} className="text-xs font-bold text-gray-400 uppercase">Batal</button>
+            <button 
+              type="submit" 
+              disabled={loading}
+              className="bg-blue-600 text-white px-6 py-2 rounded-lg text-xs font-bold uppercase shadow-lg shadow-blue-100 hover:bg-blue-700 disabled:bg-gray-400"
+            >
+              {loading ? "Memproses..." : "Konfirmasi Keluar"}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

@@ -14,11 +14,15 @@ interface ProductData {
 
 export const productService = {
   // Mengambil semua data produk
-  getAllProducts: async () => {
+  getAll: async () => { 
     const response = await axiosInstance.get("/api/v1/products");
     return response.data;
   },
 
+  getById: async (id: number) => {
+    const response = await axiosInstance.get(`/api/v1/products/${id}`);
+    return response.data;
+  },
   // Menambah produk baru
   createProduct: async (data: ProductData) => {
     const response = await axiosInstance.post("/api/v1/products", data);
