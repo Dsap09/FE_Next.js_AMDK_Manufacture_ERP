@@ -49,4 +49,20 @@ export const purchaseRequestService = {
     const response = await axiosInstance.post(`/api/v1/purchase-requests/${id}/approve`);
     return response.data;
   },
+
+  /**
+   * Menolak (Reject) PR oleh Manager/Admin
+   */
+  reject: async (id: number | string) => {
+    const response = await axiosInstance.post(`/api/v1/purchase-requests/${id}/reject`);
+    return response.data;
+  },
+
+  /**
+   * Menghapus (Soft Delete) PR
+   */
+  delete: async (id: number | string) => {
+    const response = await axiosInstance.delete(`/api/v1/purchase-requests/${id}`);
+    return response.data;
+  },
 };

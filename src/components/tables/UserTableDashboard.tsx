@@ -93,9 +93,8 @@ export default function UserTableDashboard() {
                   </div>
                 </td>
                 <td className="px-6 py-4">
-                  {/* PANGGIL DISINI: Variabel 'user' tersedia di dalam blok map ini */}
-                  <span className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full border ${getRoleStyle(user.role)}`}>
-                    {user.role}
+                  <span className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full border ${getRoleStyle(user.roles?.[0]?.name || "")}`}>
+                    {user.roles?.[0]?.name?.replace(/-/g, " ") || "-"}
                   </span>
                 </td>
                 <td className="px-6 py-4 text-right flex justify-end gap-2">
@@ -108,11 +107,11 @@ export default function UserTableDashboard() {
         </table>
       </div>
 
-      <UserModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        onSave={handleSave} 
-        initialData={selectedUser} 
+      <UserModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleSave}
+        initialData={selectedUser}
       />
     </div>
   );

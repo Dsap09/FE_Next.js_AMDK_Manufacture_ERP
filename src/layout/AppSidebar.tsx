@@ -29,29 +29,47 @@ const navItems: NavItem[] = [
   {
     icon: <GridIcon />,
     name: "Dashboard",
-    subItems: [{ name: "Overview", path: "/", pro: false }],
+    path: "/",
   },
   {
     icon: <BoxIcon />,
     name: "Pembelian",
     subItems: [
-        { name: "Purchase Request", path: "/purchasing/purchase-request" },
-        { name: "Purchase Request Item", path: "/purchasing/Purchase-Request-Item" },
-        { name: "Purchase Order", path: "/purchasing/purchase-order"},
+      { name: "Purchase Request", path: "/purchasing/purchase-request" },
+      { name: "Purchase Request Item", path: "/purchasing/Purchase-Request-Item" },
+      { name: "Purchase Order", path: "/purchasing/purchase-order" },
+      { name: "Goods Receipt", path: "/purchasing/goods-receipt" },
+      { name: "Purchase Return", path: "/purchasing/purchase-return" },
+      { name: "Tanda Terima Faktur", path: "/purchasing/invoice-receipt" },
+      { name: "Laporan Supplier", path: "/purchasing/supplier-report" },
+      { name: "Laporan TTF", path: "/purchasing/ttf-report" },
+      { name: "Laporan Retur", path: "/purchasing/return-report" },
     ],
   },
   {
     icon: <BoxCubeIcon />,
     name: "Persediaan",
     subItems: [
-      { name: "Dashboard Stok", path: "/inventory/dashboard" },
+      { name: "Stock Movement", path: "/inventory/stock-movement" },
+      { name: "Transfer Gudang", path: "/inventory/transfer-warehouse" },
+      { name: "Kartu Persediaan", path: "/inventory/kartu-persediaan" },
+      { name: "Laporan Persediaan", path: "/inventory/laporan" },
       { name: "Permintaan Stok", path: "/inventory/request" },
       { name: "Penyesuaian Stok", path: "/inventory/adjustment" },
       { name: "Stok Awal", path: "/inventory/stock-initial" },
       { name: "Stok Keluar", path: "/inventory/stock-out" },
       { name: "Bahan Baku", path: "/inventory/raw-materials" },
-      { name: "Bahan Baku Masuk", path: "/inventory/raw-materials-in"},
-      { name: "Bahan Baku Keluar", path: "/inventory/raw-materials-out"},
+      { name: "Bahan Baku Masuk", path: "/inventory/raw-materials-in" },
+      { name: "Bahan Baku Keluar", path: "/inventory/raw-materials-out" },
+    ],
+  },
+  {
+    icon: <BoxCubeIcon />,
+    name: "Produksi",
+    subItems: [
+      { name: "Bill of Material (BOM)", path: "/production/bom" },
+      { name: "Production Order", path: "/production/order" },
+      { name: "Produk Eksekusi", path: "/production/execution" },
     ],
   },
   {
@@ -70,8 +88,10 @@ const navItems: NavItem[] = [
       { name: "Data Supplier", path: "/data/supplier" },
       { name: "Data Produk", path: "/data/produk" },
       { name: "Data Unit", path: "/data/unit" },
+      { name: "Data User", path: "/data/user" },
       { name: "Data Warehouse", path: "/data/warehouse" },
-     // { name: "Data User", path: "/data/user" },
+      { name: "Chart of Accounts", path: "/data/chart-of-accounts" },
+      { name: "Initial Balance", path: "/data/initial-balance" },
     ],
   },
   {
@@ -170,13 +190,11 @@ const AppSidebar: React.FC = () => {
           {nav.subItems ? (
             <button
               onClick={() => handleSubmenuToggle(index, menuType)}
-              className={`menu-item group ${
-                openSubmenu?.type === menuType && openSubmenu?.index === index
-                  ? "menu-item-active"
-                  : "menu-item-inactive"
-              } cursor-pointer w-full flex items-center ${
-                !isExpanded && !isHovered ? "lg:justify-center" : "lg:justify-start"
-              }`}
+              className={`menu-item group ${openSubmenu?.type === menuType && openSubmenu?.index === index
+                ? "menu-item-active"
+                : "menu-item-inactive"
+                } cursor-pointer w-full flex items-center ${!isExpanded && !isHovered ? "lg:justify-center" : "lg:justify-start"
+                }`}
             >
               <span className={openSubmenu?.type === menuType && openSubmenu?.index === index ? "menu-item-icon-active" : "menu-item-icon-inactive"}>
                 {nav.icon}
@@ -186,9 +204,8 @@ const AppSidebar: React.FC = () => {
               )}
               {(isExpanded || isHovered || isMobileOpen) && (
                 <ChevronDownIcon
-                  className={`ml-auto w-5 h-5 transition-transform duration-200 ${
-                    openSubmenu?.type === menuType && openSubmenu?.index === index ? "rotate-180" : ""
-                  }`}
+                  className={`ml-auto w-5 h-5 transition-transform duration-200 ${openSubmenu?.type === menuType && openSubmenu?.index === index ? "rotate-180" : ""
+                    }`}
                 />
               )}
             </button>

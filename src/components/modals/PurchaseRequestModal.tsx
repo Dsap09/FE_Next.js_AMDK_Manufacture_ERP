@@ -48,19 +48,26 @@ export default function PurchaseRequestModal({ isOpen, onClose, onSave, initialD
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
+    console.log("=== FORM DATA TO SEND ===", formData);
+
     try {
       // Payload hanya mengirimkan data header sesuai revisi workflow Anda
       if (initialData) {
         await purchaseRequestService.update(initialData.id, formData);
         alert("Purchase Request berhasil diperbarui!");
       } else {
-        await purchaseRequestService.create(formData);
+        console.log("Creating new PR with data:", formData);
+        const response = await purchaseRequestService.create(formData);
+        console.log("Create PR Response:", response);
         alert("Purchase Request baru berhasil diterbitkan!");
       }
       onSave();
       onClose();
     } catch (error: any) {
-      alert("Gagal: " + (error.response?.data?.message || "Terjadi kesalahan sistem"));
+      console.error("=== CAUGHT ERROR IN MODAL ===", error);
+      const errorMessage = error.response?.data?.message || error.message || "Terjadi kesalahan sistem";
+      alert("Gagal: " + errorMessage);
     } finally {
       setLoading(false);
     }
@@ -71,7 +78,7 @@ export default function PurchaseRequestModal({ isOpen, onClose, onSave, initialD
   return (
     <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
       <div className="w-full max-w-lg bg-white rounded-3xl p-6 shadow-2xl dark:bg-gray-900 border border-white/10">
-        
+
         {/* Header Modal */}
         <div className="flex justify-between items-center mb-6 border-b pb-4">
           <h3 className="text-xl font-black uppercase text-gray-800 dark:text-white tracking-tighter italic flex items-center gap-2">
@@ -89,10 +96,10 @@ export default function PurchaseRequestModal({ isOpen, onClose, onSave, initialD
             <label className="flex items-center gap-2 text-[10px] font-black uppercase text-gray-400 mb-1.5 ml-1 tracking-widest">
               Kategori Permintaan
             </label>
-            <select 
+            <select
               className="w-full border-2 border-gray-100 p-3 rounded-2xl text-sm font-bold focus:border-blue-500 outline-none transition-all dark:bg-gray-800 dark:border-gray-700"
               value={formData.type}
-              onChange={(e) => setFormData({...formData, type: e.target.value as any})}
+              onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
               disabled={!!initialData}
               required
             >
@@ -107,12 +114,12 @@ export default function PurchaseRequestModal({ isOpen, onClose, onSave, initialD
               <label className="flex items-center gap-2 text-[10px] font-black uppercase text-gray-400 mb-1.5 ml-1 tracking-widest">
                 <Building2 size={12} /> Departemen
               </label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 className="w-full border-2 border-gray-100 p-3 rounded-2xl text-sm font-bold outline-none focus:border-blue-500 dark:bg-gray-800"
                 placeholder="Misal: Produksi"
                 value={formData.department}
-                onChange={(e) => setFormData({...formData, department: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, department: e.target.value })}
                 required
               />
             </div>
@@ -122,11 +129,11 @@ export default function PurchaseRequestModal({ isOpen, onClose, onSave, initialD
               <label className="flex items-center gap-2 text-[10px] font-black uppercase text-gray-400 mb-1.5 ml-1 tracking-widest">
                 <Calendar size={12} /> Tanggal Request
               </label>
-              <input 
-                type="date" 
+              <input
+                type="date"
                 className="w-full border-2 border-gray-100 p-3 rounded-2xl text-sm font-bold outline-none focus:border-blue-500 dark:bg-gray-800"
                 value={formData.request_date}
-                onChange={(e) => setFormData({...formData, request_date: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, request_date: e.target.value })}
                 required
               />
             </div>
@@ -137,12 +144,12 @@ export default function PurchaseRequestModal({ isOpen, onClose, onSave, initialD
             <label className="block text-[10px] font-black uppercase text-gray-400 mb-1.5 ml-1 tracking-widest">
               Keterangan / Notes
             </label>
-            <textarea 
+            <textarea
               className="w-full border-2 border-gray-100 p-3 rounded-2xl text-sm outline-none focus:border-blue-500 dark:bg-gray-800"
               rows={3}
               placeholder="Berikan alasan atau detail keperluan PR ini..."
               value={formData.notes}
-              onChange={(e) => setFormData({...formData, notes: e.target.value})}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
             />
           </div>
 
@@ -154,15 +161,15 @@ export default function PurchaseRequestModal({ isOpen, onClose, onSave, initialD
 
           {/* Tombol Aksi */}
           <div className="flex justify-end gap-3 pt-4 border-t dark:border-gray-800">
-            <button 
-              type="button" 
-              onClick={onClose} 
+            <button
+              type="button"
+              onClick={onClose}
               className="text-xs font-bold text-gray-400 uppercase tracking-widest px-6"
             >
               Batal
             </button>
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               disabled={loading}
               className="bg-blue-600 text-white px-10 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-blue-100 hover:bg-blue-700 transition-all disabled:bg-gray-300"
             >

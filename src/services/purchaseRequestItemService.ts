@@ -13,8 +13,8 @@ export const purchaseRequestItemService = {
   /**
    * Update kuantitas atau catatan pada baris item tertentu
    */
-  update: async (id: number | string, data: { quantity: number; notes?: string; reference_no?: string }) => {
-    const response = await axiosInstance.put(`/api/v1/purchase-request-items/${id}`, data);
+update: async (id: number | string, data: any) => {
+    const response = await axiosInstance.patch(`/api/v1/purchase-request-items/${id}`, data);
     return response.data;
   },
 
