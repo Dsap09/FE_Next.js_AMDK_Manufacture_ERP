@@ -16,8 +16,23 @@ export const salesReportService = {
         return response.data;
     },
 
-    getMonthlyTrend: async (params?: { year?: string }) => {
+    getMonthlyTrend: async (params?: { year?: string; start_date?: string; end_date?: string }) => {
         const response = await axiosInstance.get("/api/v1/sales-reports/monthly-trend", { params });
+        return response.data;
+    },
+
+    getAging: async (params?: { start_date?: string; end_date?: string }) => {
+        const response = await axiosInstance.get("/api/v1/sales-reports/aging", { params });
+        return response.data;
+    },
+
+    getReturns: async (params?: { start_date?: string; end_date?: string }) => {
+        const response = await axiosInstance.get("/api/v1/sales-reports/returns", { params });
+        return response.data;
+    },
+
+    getInvoiceStatus: async (params?: { start_date?: string; end_date?: string; status?: string }) => {
+        const response = await axiosInstance.get("/api/v1/sales-reports/invoice-status", { params });
         return response.data;
     },
 
@@ -37,8 +52,17 @@ export const salesReportService = {
         return response.data;
     },
 
-    downloadAgingReportPdf: async () => {
-        const response = await axiosInstance.get("/api/v1/sales-report/report-aging", {
+    downloadAgingReportPdf: async (params?: { start_date?: string; end_date?: string }) => {
+        const response = await axiosInstance.get("/api/v1/sales-reports/aging/pdf", {
+            params,
+            responseType: 'blob'
+        });
+        return response.data;
+    },
+
+    downloadReturnsReportPdf: async (params?: { start_date?: string; end_date?: string }) => {
+        const response = await axiosInstance.get("/api/v1/sales-reports/returns/pdf", {
+            params,
             responseType: 'blob'
         });
         return response.data;
