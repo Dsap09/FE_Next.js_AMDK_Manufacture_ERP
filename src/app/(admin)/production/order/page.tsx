@@ -26,7 +26,7 @@ export default function ProductionOrderPage() {
         bom_id: "",
         warehouse_id: "",
         production_date: new Date().toISOString().split("T")[0],
-        quantity_plan: "",
+        quantity_plan: "" as string | number,
         notes: ""
     });
 

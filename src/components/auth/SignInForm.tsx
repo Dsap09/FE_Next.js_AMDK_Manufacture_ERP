@@ -24,8 +24,9 @@ export default function SignInForm() {
       const token = result.token || result.data?.token;
 
       if (token) {
-        // 1. Simpan ke LocalStorage (Untuk Axios Interceptor)
+        // 1. Simpan ke LocalStorage (Untuk Axios Interceptor & Profile)
         localStorage.setItem("token", token);
+        localStorage.setItem("user", JSON.stringify(result.user || result.data?.user));
 
         // 2. Simpan ke Cookie (Untuk Middleware & Proteksi Halaman Server)
         Cookies.set("token", token, { expires: 1, secure: true, sameSite: 'strict' });

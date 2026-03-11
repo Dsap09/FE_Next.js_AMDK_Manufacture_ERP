@@ -94,6 +94,11 @@ export const invoiceReceiptService = {
         return response.data;
     },
 
+    printData: async (id: number | string) => {
+        const response = await axiosInstance.get(`/api/v1/invoice-receipts/${id}/print`);
+        return response.data;
+    },
+
     getPrintUrl: (id: number | string) => {
         return `/print/invoice-receipt/${id}`;
     },

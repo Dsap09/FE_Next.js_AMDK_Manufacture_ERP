@@ -50,7 +50,7 @@ export default function ReturnReportPage() {
         setDetailOpen(true);
         setLoadingDetail(true);
         try {
-            const res = await purchaseReturnReportService.getDetail(item.id);
+            const res = await purchaseReturnReportService.getDetail(item.return_id || item.id);
             setDetailData(res?.data || res);
         } catch (e) { console.error(e); }
         finally { setLoadingDetail(false); }
@@ -229,27 +229,27 @@ export default function ReturnReportPage() {
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                                     <div className="p-4 rounded-2xl bg-rose-50 border border-rose-100">
                                         <p className="text-[9px] font-black text-gray-400 uppercase mb-1">No Retur</p>
-                                        <p className="text-sm font-black text-rose-600">{detailData.return_number}</p>
+                                        <p className="text-sm font-black text-rose-600">{detailData.return?.return_number || detailData.return?.no_retur}</p>
                                     </div>
                                     <div className="p-4 rounded-2xl bg-gray-50 border border-gray-100">
                                         <p className="text-[9px] font-black text-gray-400 uppercase mb-1">Tanggal</p>
-                                        <p className="text-sm font-bold">{detailData.return_date}</p>
+                                        <p className="text-sm font-bold">{detailData.return?.return_date || detailData.return?.tanggal}</p>
                                     </div>
                                     <div className="p-4 rounded-2xl bg-gray-50 border border-gray-100">
                                         <p className="text-[9px] font-black text-gray-400 uppercase mb-1">PO</p>
-                                        <p className="text-sm font-bold">{detailData.purchase_order?.kode}</p>
+                                        <p className="text-sm font-bold">{detailData.return?.po_number || detailData.return?.purchase_order?.kode}</p>
                                     </div>
                                     <div className="p-4 rounded-2xl bg-gray-50 border border-gray-100">
                                         <p className="text-[9px] font-black text-gray-400 uppercase mb-1">Status</p>
-                                        <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase ${getStatusBadge(detailData.status)}`}>
-                                            {detailData.status}
+                                        <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase ${getStatusBadge(detailData.return?.status)}`}>
+                                            {detailData.return?.status}
                                         </span>
                                     </div>
                                 </div>
 
                                 <div className="p-4 rounded-2xl bg-red-50 border border-red-100">
                                     <p className="text-[9px] font-black text-gray-400 uppercase mb-1">Alasan Retur</p>
-                                    <p className="text-sm font-bold text-red-600">{detailData.reason}</p>
+                                    <p className="text-sm font-bold text-red-600">{detailData.return?.reason}</p>
                                 </div>
 
                                 <div className="rounded-2xl border border-gray-100 overflow-hidden">

@@ -1,149 +1,241 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { stockTransferService } from "@/services/stockTransferService";
+import { warehouseService } from "@/services/warehouseService";
+import { productService } from "@/services/productService";
+import { rawMaterialService } from "@/services/rawMaterialService";
 import Button from "../ui/button/Button";
-import StockTransferModal from "../modals/StockTransferModal";
+import { toast } from "react-hot-toast";
 
-export default function StockTransferTable() {
-    const [transfers, setTransfers] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [isModalOpen, setIsModalOpen] = useState(false);
+export default function StockTransferForm() {
+    const [warehouses, setWarehouses] = useState<any[]>([]);
+    const [products, setProducts] = useState<any[]>([]);
+    const [rawMaterials, setRawMaterials] = useState<any[]>([]);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    useEffect(() => { fetchData(); }, []);
+    const [formData, setFormData] = useState({
+        dari_warehouse_id: "",
+        ke_warehouse_id: "",
+        transfer_date: new Date().toISOString().split("T")[0],
+        notes: "",
+    });
 
-    const fetchData = async () => {
-        try {
-            setLoading(true);
-            const res = await stockTransferService.getAll();
-            setTransfers(Array.isArray(res) ? res : res.data || []);
-        } catch (error) {
-            console.error("Gagal load data transfer");
-        } finally {
-            setLoading(false);
-        }
+    const [items, setItems] = useState<{ type: string; itemable_id: string; quantity: number }[]>([
+        { type: "product", itemable_id: "", quantity: 0 }
+    ]);
+
+    useEffect(() => {
+        warehouseService.getAll().then((res: any) => setWarehouses(Array.isArray(res) ? res : res.data || []));
+        productService.getAll().then((res: any) => setProducts(Array.isArray(res) ? res : res.data || []));
+        rawMaterialService.getAll().then((res: any) => setRawMaterials(Array.isArray(res) ? res : res.data || []));
+    }, []);
+
+    const resetForm = () => {
+        setFormData({
+            dari_warehouse_id: "",
+            ke_warehouse_id: "",
+            transfer_date: new Date().toISOString().split("T")[0],
+            notes: "",
+        });
+        setItems([{ type: "product", itemable_id: "", quantity: 0 }]);
     };
 
-    const handleSave = async (payload: any) => {
-        try {
-            await stockTransferService.store(payload);
-            setIsModalOpen(false);
-            fetchData();
-        } catch (error: any) {
-            alert(error.response?.data?.message || "Gagal membuat transfer.");
-        }
+    const handleAddItem = () => {
+        setItems([...items, { type: "product", itemable_id: "", quantity: 0 }]);
     };
 
-    const handleApprove = async (id: number) => {
-        if (!confirm("Approve transfer ini?")) return;
-        try {
-            await stockTransferService.approve(id);
-            fetchData();
-        } catch (error: any) {
-            alert(error.response?.data?.message || "Gagal approve.");
-        }
+    const handleRemoveItem = (index: number) => {
+        setItems(items.filter((_, i) => i !== index));
     };
 
-    const handleReject = async (id: number) => {
-        if (!confirm("Reject transfer ini?")) return;
-        try {
-            await stockTransferService.reject(id);
-            fetchData();
-        } catch (error: any) {
-            alert(error.response?.data?.message || "Gagal reject.");
+    const handleItemChange = (index: number, field: string, value: any) => {
+        const newItems = [...items] as any[];
+        if (field === "quantity") {
+            const parsed = value === "" ? 0 : parseFloat(value);
+            newItems[index][field] = isNaN(parsed) ? 0 : parsed;
+        } else if (field === "type") {
+            newItems[index].type = value;
+            newItems[index].itemable_id = "";
+        } else {
+            newItems[index][field] = value;
         }
+        setItems(newItems);
     };
 
-    const handleExecute = async (id: number) => {
-        if (!confirm("Eksekusi transfer ini? Stok akan dipindahkan.")) return;
-        try {
-            await stockTransferService.execute(id);
-            fetchData();
-        } catch (error: any) {
-            alert(error.response?.data?.message || "Gagal eksekusi transfer.");
+    const handleSubmit = async () => {
+        if (!formData.dari_warehouse_id || !formData.ke_warehouse_id) {
+            return alert("Harap pilih gudang asal dan tujuan!");
         }
-    };
+        if (formData.dari_warehouse_id === formData.ke_warehouse_id) {
+            return alert("Gudang asal dan tujuan harus berbeda!");
+        }
+        if (items.some(it => !it.itemable_id || it.quantity <= 0)) {
+            return alert("Harap isi semua item dengan benar!");
+        }
 
-    const statusBadge = (status: string) => {
-        const styles: Record<string, string> = {
-            draft: "bg-yellow-50 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
-            approved: "bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-            executed: "bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-            rejected: "bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+        const payload = {
+            dari_warehouse_id: parseInt(formData.dari_warehouse_id),
+            ke_warehouse_id: parseInt(formData.ke_warehouse_id),
+            transfer_date: formData.transfer_date,
+            notes: formData.notes || undefined,
+            items: items.map(it => ({
+                product_id: it.type === "product" ? parseInt(it.itemable_id) : null,
+                raw_material_id: it.type === "raw_material" ? parseInt(it.itemable_id) : null,
+                quantity: it.quantity,
+            }))
         };
-        return (
-            <span className={`px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${styles[status] || "bg-gray-100 text-gray-600"}`}>
-                {status}
-            </span>
-        );
-    };
 
-    if (loading) return <div className="p-10 text-center">Memuat data transfer...</div>;
+        setIsSubmitting(true);
+        try {
+            // Step 1: Create
+            const createRes = await stockTransferService.store(payload);
+            const transferId = createRes?.data?.id;
+
+            if (transferId) {
+                // Step 2: Approve
+                await stockTransferService.approve(transferId);
+                // Step 3: Execute (Move Stock)
+                await stockTransferService.execute(transferId);
+
+                alert("Transfer gudang berhasil dieksekusi!");
+                resetForm();
+            } else {
+                throw new Error("ID Transfer tidak ditemukan dari response.");
+            }
+
+        } catch (error: any) {
+            console.error(error);
+            alert(error.response?.data?.message || error.message || "Terjadi kesalahan saat mengeksekusi transfer.");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
     return (
-        <div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
-            <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-800">
-                <h3 className="text-lg font-bold">Transfer Gudang</h3>
-                <Button onClick={() => setIsModalOpen(true)} size="sm">+ Buat Transfer</Button>
+        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+            <div className="mb-6 border-b border-gray-100 pb-4 dark:border-gray-800">
+                <h3 className="text-lg font-bold">Form Input Transfer Gudang</h3>
+                <p className="text-sm text-gray-500">Transfer akan langsung dieksekusi dan memotong/menambah stok.</p>
             </div>
 
-            <div className="overflow-x-auto">
-                <table className="w-full text-left">
-                    <thead className="bg-gray-50/50 dark:bg-white/5">
-                        <tr>
-                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">Kode</th>
-                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">Dari Gudang</th>
-                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">Ke Gudang</th>
-                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">Tanggal</th>
-                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">Status</th>
-                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">Catatan</th>
-                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase text-right">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                        {transfers.length > 0 ? (
-                            transfers.map((t: any) => (
-                                <tr key={t.id} className="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
-                                    <td className="px-6 py-4 text-sm">
-                                        <span className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-xs font-mono font-bold">{t.kode}</span>
-                                    </td>
-                                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
-                                        {t.dari_warehouse?.name || t.dari_warehouse_id}
-                                    </td>
-                                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
-                                        {t.ke_warehouse?.name || t.ke_warehouse_id}
-                                    </td>
-                                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
-                                        {t.transfer_date ? new Date(t.transfer_date).toLocaleDateString("id-ID") : "-"}
-                                    </td>
-                                    <td className="px-6 py-4 text-sm">{statusBadge(t.status)}</td>
-                                    <td className="px-6 py-4 text-sm text-gray-500 italic">{t.notes || "-"}</td>
-                                    <td className="px-6 py-4 text-right">
-                                        <div className="flex justify-end gap-2">
-                                            {t.status === "draft" && (
-                                                <>
-                                                    <button onClick={() => handleApprove(t.id)} className="text-blue-500 hover:text-blue-700 text-xs font-bold">Approve</button>
-                                                    <button onClick={() => handleReject(t.id)} className="text-red-500 hover:text-red-700 text-xs font-bold">Reject</button>
-                                                </>
-                                            )}
-                                            {t.status === "approved" && (
-                                                <button onClick={() => handleExecute(t.id)} className="text-green-500 hover:text-green-700 text-xs font-bold">Eksekusi</button>
-                                            )}
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))
-                        ) : (
-                            <tr><td colSpan={7} className="p-10 text-center text-gray-400">Belum ada data transfer gudang.</td></tr>
-                        )}
-                    </tbody>
-                </table>
-            </div>
+            <div className="space-y-6">
+                {/* Gudang Asal & Tujuan */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label className="mb-2 block text-sm font-medium">Dari Gudang Asal</label>
+                        <select
+                            className="w-full rounded-lg border border-gray-200 p-3 dark:bg-gray-800 dark:border-gray-700 focus:ring-2 focus:ring-blue-500"
+                            value={formData.dari_warehouse_id}
+                            onChange={(e) => setFormData({ ...formData, dari_warehouse_id: e.target.value })}
+                        >
+                            <option value="">-- Pilih Gudang Asal --</option>
+                            {warehouses.map((w: any) => (
+                                <option key={w.id} value={w.id}>{w.name}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div>
+                        <label className="mb-2 block text-sm font-medium">Ke Gudang Tujuan</label>
+                        <select
+                            className="w-full rounded-lg border border-gray-200 p-3 dark:bg-gray-800 dark:border-gray-700 focus:ring-2 focus:ring-blue-500"
+                            value={formData.ke_warehouse_id}
+                            onChange={(e) => setFormData({ ...formData, ke_warehouse_id: e.target.value })}
+                        >
+                            <option value="">-- Pilih Gudang Tujuan --</option>
+                            {warehouses.map((w: any) => (
+                                <option key={w.id} value={w.id}>{w.name}</option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
 
-            <StockTransferModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                onSave={handleSave}
-            />
+                {/* Date & Notes */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label className="mb-2 block text-sm font-medium">Tanggal Transfer</label>
+                        <input
+                            type="date"
+                            className="w-full rounded-lg border border-gray-200 p-3 dark:bg-gray-800 dark:border-gray-700 focus:ring-2 focus:ring-blue-500"
+                            value={formData.transfer_date}
+                            onChange={(e) => setFormData({ ...formData, transfer_date: e.target.value })}
+                        />
+                    </div>
+                    <div>
+                        <label className="mb-2 block text-sm font-medium">Catatan (Notes)</label>
+                        <input
+                            type="text"
+                            className="w-full rounded-lg border border-gray-200 p-3 dark:bg-gray-800 dark:border-gray-700 focus:ring-2 focus:ring-blue-500"
+                            value={formData.notes}
+                            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                            placeholder="Keterangan operasional opsional"
+                        />
+                    </div>
+                </div>
+
+                {/* Items */}
+                <div className="border-t border-gray-100 pt-6">
+                    <div className="flex justify-between items-center mb-6">
+                        <h4 className="text-sm font-bold text-gray-800 uppercase tracking-wide">Item yang Ditransfer</h4>
+                        <button type="button" onClick={handleAddItem} className="text-sm font-bold text-blue-600 hover:text-blue-800 uppercase px-3 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors">
+                            + Tambah Item
+                        </button>
+                    </div>
+
+                    <div className="space-y-4">
+                        {items.map((item, index) => (
+                            <div key={index} className="flex flex-col md:flex-row gap-4 items-center bg-gray-50/50 p-4 rounded-xl border border-gray-100">
+                                <div className="w-full md:w-48">
+                                    <label className="text-xs text-gray-500 mb-1 block">Tipe Barang</label>
+                                    <select
+                                        className="w-full border border-gray-200 p-2.5 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                                        value={item.type}
+                                        onChange={(e) => handleItemChange(index, "type", e.target.value)}
+                                    >
+                                        <option value="product">Produk Jadi</option>
+                                        <option value="raw_material">Bahan Baku</option>
+                                    </select>
+                                </div>
+                                <div className="flex-1 w-full">
+                                    <label className="text-xs text-gray-500 mb-1 block">Pilih Item</label>
+                                    <select
+                                        className="w-full border border-gray-200 p-2.5 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                                        value={item.itemable_id}
+                                        onChange={(e) => handleItemChange(index, "itemable_id", e.target.value)}
+                                    >
+                                        <option value="">-- Pilih {item.type === "product" ? "Produk" : "Bahan Baku"} --</option>
+                                        {(item.type === "product" ? products : rawMaterials).map((p: any) => (
+                                            <option key={p.id} value={p.id}>{p.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="w-full md:w-32">
+                                    <label className="text-xs text-gray-500 mb-1 block">Kuantitas</label>
+                                    <input
+                                        type="number"
+                                        placeholder="Qty"
+                                        className="w-full border border-gray-200 p-2.5 rounded-lg text-sm text-center outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                                        value={item.quantity === 0 ? "" : item.quantity}
+                                        onChange={(e) => handleItemChange(index, "quantity", e.target.value)}
+                                    />
+                                </div>
+                                {items.length > 1 && (
+                                    <div className="pt-5">
+                                        <button type="button" onClick={() => handleRemoveItem(index)} className="text-gray-400 hover:text-red-500 bg-white hover:bg-red-50 w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center transition-all">
+                                            ✕
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="mt-8 pt-6 border-t border-gray-100 flex justify-end gap-4">
+                    <Button onClick={handleSubmit} disabled={isSubmitting} className="w-full md:w-auto px-10">
+                        {isSubmitting ? "Memproses..." : "Submit & Eksekusi Transfer"}
+                    </Button>
+                </div>
+            </div>
         </div>
     );
 }

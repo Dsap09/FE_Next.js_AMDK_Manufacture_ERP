@@ -8,7 +8,19 @@ import { DropdownItem } from "../ui/dropdown/DropdownItem";
 
 export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
+  const [user, setUser] = useState<{ name: string; email: string } | null>(null);
   const router = useRouter();
+
+  React.useEffect(() => {
+    const savedUser = localStorage.getItem("user");
+    if (savedUser) {
+      try {
+        setUser(JSON.parse(savedUser));
+      } catch (e) {
+        console.error("Failed to parse user data", e);
+      }
+    }
+  }, []);
 
   function toggleDropdown(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
     e.stopPropagation();
@@ -23,8 +35,9 @@ export default function UserDropdown() {
   const handleLogout = (e: React.MouseEvent) => {
     e.preventDefault();
     
-    // 1. Hapus token dari localStorage
+    // 1. Hapus token & user dari localStorage
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
     
     // 2. Hapus Cookie jika ada
     document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
@@ -35,96 +48,64 @@ export default function UserDropdown() {
 
   return (
     <div className="relative">
-      {/* Tombol Trigger (Foto Profil di Header) */}
+      {/* Tombol Trigger (Identitas Pengguna di Header) */}
       <button
         onClick={toggleDropdown}
-        className="flex items-center gap-2 pr-2 text-left sm:gap-3"
+        className="flex items-center gap-2 pr-2 text-left sm:gap-4 group"
       >
-        <div className="relative w-10 h-10 rounded-full">
-          <Image
-            width={40}
-            height={40}
-            src="/images/user/user-03.jpg"
-            alt="User"
-            className="rounded-full"
-          />
-          <span className="absolute bottom-0 right-0 block w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>
-        </div>
-
-        <div className="hidden text-right lg:block">
-          <span className="block text-sm font-medium text-gray-700 dark:text-white/90">
-            Admin User
+        <div className="flex flex-col text-right">
+          <span className="block text-sm font-black text-gray-800 dark:text-white uppercase tracking-tighter group-hover:text-blue-600 transition-colors">
+            {user?.name || "Admin"}
           </span>
-          <span className="block text-xs text-gray-500 dark:text-gray-400">
-            admin@company.com
+          <span className="block text-[10px] font-bold text-gray-400 dark:text-gray-500 lowercase tracking-tight">
+            {user?.email || "loading..."}
           </span>
         </div>
 
-        <svg
-          className={`fill-gray-500 transition-transform duration-200 ${
-            isOpen ? "rotate-180" : ""
-          }`}
-          width="18"
-          height="18"
-          viewBox="0 0 18 18"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            fillRule="evenodd"
-            clipRule="evenodd"
-            d="M3.32293 6.38394C3.52516 6.13314 3.89409 6.08767 4.14488 6.28991L9.00013 10.2114L13.8554 6.28991C14.1062 6.08767 14.4751 6.13314 14.6773 6.38394C14.8796 6.63473 14.8341 7.00366 14.5833 7.2059L9.36409 11.4214C9.15317 11.5917 8.84709 11.5917 8.63617 11.4214L3.41693 7.2059C3.16614 7.00366 3.12067 6.63473 3.32293 6.38394Z"
-          />
-        </svg>
+        <div className="p-2 bg-gray-50 dark:bg-gray-800 rounded-xl group-hover:bg-blue-50 transition-all">
+            <svg
+            className={`fill-gray-400 transition-transform duration-300 group-hover:fill-blue-600 ${
+                isOpen ? "rotate-180 text-blue-600" : ""
+            }`}
+            width="14"
+            height="14"
+            viewBox="0 0 18 18"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            >
+            <path
+                fillRule="evenodd"
+                clipRule="evenodd"
+                d="M3.32293 6.38394C3.52516 6.13314 3.89409 6.08767 4.14488 6.28991L9.00013 10.2114L13.8554 6.28991C14.1062 6.08767 14.4751 6.13314 14.6773 6.38394C14.8796 6.63473 14.8341 7.00366 14.5833 7.2059L9.36409 11.4214C9.15317 11.5917 8.84709 11.5917 8.63617 11.4214L3.41693 7.2059C3.16614 7.00366 3.12067 6.63473 3.32293 6.38394Z"
+            />
+            </svg>
+        </div>
       </button>
 
       {/* Konten Dropdown */}
       <Dropdown
         isOpen={isOpen}
         onClose={closeDropdown}
-        className="absolute right-0 mt-[17px] flex w-[260px] flex-col rounded-2xl border border-gray-200 bg-white p-3 shadow-theme-lg dark:border-gray-800 dark:bg-gray-dark"
+        className="absolute right-0 mt-[17px] flex w-[220px] flex-col rounded-3xl border border-gray-100 bg-white p-2 shadow-2xl dark:border-gray-800 dark:bg-gray-900 overflow-hidden"
       >
-        <div className="px-4 py-3 mb-2 border-b border-gray-100 dark:border-gray-800">
-          <p className="text-sm font-semibold text-gray-800 dark:text-white/90">
-            Admin User
+        <div className="px-4 py-4 mb-1 bg-gray-50 dark:bg-gray-800/50 rounded-2xl">
+          <p className="text-xs font-black text-gray-800 dark:text-white uppercase tracking-tight">
+            {user?.name || "Admin"}
           </p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">
-            admin@company.com
+          <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500">
+            {user?.email || ""}
           </p>
         </div>
-
-        <ul className="flex flex-col gap-1">
-          <li>
-            <DropdownItem
-              onItemClick={closeDropdown}
-              tag={Link}
-              href="/profile"
-              className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5"
-            >
-              View Profile
-            </DropdownItem>
-          </li>
-          <li>
-            <DropdownItem
-              onItemClick={closeDropdown}
-              tag={Link}
-              href="/form-elements"
-              className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5"
-            >
-              Account Settings
-            </DropdownItem>
-          </li>
-        </ul>
 
         {/* Tombol Logout */}
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3 px-3 py-2 mt-3 text-sm font-medium text-red-500 transition-colors rounded-lg group hover:bg-red-50 dark:hover:bg-red-500/10 w-full text-left"
+          className="flex items-center gap-3 px-4 py-3 text-[11px] font-black uppercase tracking-widest text-red-500 transition-all rounded-2xl hover:bg-red-50 dark:hover:bg-red-500/10 w-full text-left"
         >
           <svg
             className="fill-red-500"
-            width="20"
-            height="20"
+            width="18"
+            height="18"
             viewBox="0 0 24 24"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"

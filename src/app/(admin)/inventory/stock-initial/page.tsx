@@ -9,7 +9,7 @@ export default function StockInitialPage() {
   const [warehouses, setWarehouses] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     warehouse_id: "",
     items: [{ product_id: "", quantity: 0 }]
@@ -47,8 +47,8 @@ export default function StockInitialPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.warehouse_id || formData.items.some(it => !it.product_id || Number(it.quantity) <= 0)) {
-        return alert("Harap isi semua field dengan benar!");
-      }
+      return alert("Harap isi semua field dengan benar!");
+    }
 
     setLoading(true);
     try {
@@ -56,8 +56,7 @@ export default function StockInitialPage() {
         warehouse_id: parseInt(formData.warehouse_id),
         items: formData.items.map(it => ({
           product_id: parseInt(it.product_id as string),
-          // Pastikan dikirim sebagai angka, jika kosong jadikan 0
-          quantity: it.quantity === "" ? 0 : Number(it.quantity) 
+          quantity: Number(it.quantity) || 0
         }))
       };
 
@@ -77,14 +76,14 @@ export default function StockInitialPage() {
 
       <div className="max-w-3xl mx-auto rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
         <form onSubmit={handleSubmit} className="space-y-6">
-          
+
           {/* Pemilihan Gudang */}
           <div>
             <label className="block text-[10px] font-bold text-gray-400 uppercase mb-2 ml-1">Gudang Tujuan</label>
-            <select 
+            <select
               className="w-full border-2 border-gray-50 p-3 rounded-xl text-sm outline-none focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 transition-all"
               value={formData.warehouse_id}
-              onChange={(e) => setFormData({...formData, warehouse_id: e.target.value})}
+              onChange={(e) => setFormData({ ...formData, warehouse_id: e.target.value })}
               required
             >
               <option value="">-- Pilih Gudang --</option>
@@ -97,9 +96,9 @@ export default function StockInitialPage() {
           <div className="border-t border-gray-50 pt-5">
             <div className="flex justify-between items-center mb-4">
               <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Daftar Produk & Saldo Awal</h4>
-              <button 
-                type="button" 
-                onClick={handleAddItem} 
+              <button
+                type="button"
+                onClick={handleAddItem}
                 className="text-[10px] font-black text-blue-600 hover:text-blue-800 uppercase tracking-tighter"
               >
                 + TAMBAH ITEM
@@ -110,7 +109,7 @@ export default function StockInitialPage() {
               {formData.items.map((item, index) => (
                 <div key={index} className="flex gap-3 items-center group">
                   <div className="flex-1">
-                    <select 
+                    <select
                       className="w-full border-2 border-gray-50 p-2.5 rounded-xl text-sm outline-none focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700"
                       value={item.product_id}
                       onChange={(e) => handleItemChange(index, "product_id", e.target.value)}
@@ -123,20 +122,20 @@ export default function StockInitialPage() {
                     </select>
                   </div>
                   <div className="w-32">
-                    <input 
-                      type="number" 
+                    <input
+                      type="number"
                       placeholder="0"
                       // Perbaikan: Hilangkan focus ring hitam & handle value 0
                       className="w-full border-2 border-gray-50 p-2.5 rounded-xl text-sm text-center outline-none focus:ring-0 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700"
-                      value={item.quantity === 0 ? "" : item.quantity} 
+                      value={item.quantity === 0 ? "" : item.quantity}
                       onChange={e => handleItemChange(index, "quantity", e.target.value)}
-                      required 
+                      required
                     />
                   </div>
                   {formData.items.length > 1 && (
-                    <button 
-                      type="button" 
-                      onClick={() => handleRemoveItem(index)} 
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveItem(index)}
                       className="text-gray-300 hover:text-red-500 transition-colors p-2"
                     >
                       ✕
@@ -149,8 +148,8 @@ export default function StockInitialPage() {
 
           {/* Tombol Simpan - Diperkecil (Smaller Button) */}
           <div className="pt-6 border-t border-gray-50 flex justify-end">
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               disabled={loading}
               className="bg-blue-600 text-white px-6 py-2 rounded-lg font-black text-[11px] uppercase tracking-widest shadow-md shadow-blue-100 hover:bg-blue-700 transition-all disabled:bg-gray-300 active:scale-95"
             >

@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { stockMovementService } from "@/services/stockMovementService";
 import { Package, TrendingUp, TrendingDown, Calendar, Filter, RefreshCw } from "lucide-react";
+import { useSearch } from "@/context/SearchContext";
 
 interface StockMovement {
     id: number;
@@ -13,6 +14,7 @@ interface StockMovement {
 }
 
 export default function StockMovementPage() {
+    const { searchTerm } = useSearch();
     const [movements, setMovements] = useState<StockMovement[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState({
@@ -40,6 +42,9 @@ export default function StockMovementPage() {
 
     // Filter movements
     const filteredMovements = movements.filter((movement) => {
+        const matchesSearch = !searchTerm || movement.item_name.toLowerCase().includes(searchTerm.toLowerCase()) || movement.movement_type.toLowerCase().includes(searchTerm.toLowerCase());
+        if (!matchesSearch) return false;
+        
         if (filter.type !== "all" && movement.item_type !== filter.type) return false;
         if (filter.movementType !== "all") {
             const movementTypeUpper = movement.movement_type?.toUpperCase();

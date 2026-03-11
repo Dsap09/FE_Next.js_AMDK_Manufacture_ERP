@@ -3,8 +3,8 @@ import React, { useEffect, useState, useCallback } from "react";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import { purchaseOrderService } from "@/services/purchaseOrderService";
 import PurchaseOrderModal from "@/components/modals/PurchaseOrderModal";
-import { 
-  Eye, Send, PackageCheck, Plus, Truck, Loader2, Calendar, 
+import {
+  Eye, Send, PackageCheck, Plus, Truck, Loader2, Calendar,
   Package, CheckCircle, Clock, Banknote
 } from "lucide-react";
 
@@ -73,7 +73,7 @@ export default function PurchaseOrderPage() {
       <PageBreadcrumb pageName="Purchase Order (PO)" />
 
       <div className="flex justify-end">
-        <button 
+        <button
           onClick={() => setIsModalOpen(true)}
           className="bg-blue-600 text-white px-8 py-3 rounded-2xl text-[11px] font-black uppercase shadow-lg shadow-blue-100 hover:bg-blue-700 active:scale-95 transition-all"
         >
@@ -108,10 +108,9 @@ export default function PurchaseOrderPage() {
                     {po.supplier?.nama || "—"}
                   </td>
                   <td className="px-6 py-4 text-center">
-                    <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest ${
-                      po.status === 'draft' ? 'bg-gray-100 text-gray-400' :
-                      po.status === 'sent' ? 'bg-blue-100 text-blue-600' : 'bg-emerald-100 text-emerald-600'
-                    }`}>{po.status}</span>
+                    <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest ${po.status === 'draft' ? 'bg-gray-100 text-gray-400' :
+                        po.status === 'sent' ? 'bg-blue-100 text-blue-600' : 'bg-emerald-100 text-emerald-600'
+                      }`}>{po.status}</span>
                   </td>
                   <td className="px-6 py-4 text-right">
                     <button onClick={() => { setSelectedPO(po); setIsDetailModalOpen(true); }} className="p-2.5 bg-gray-50 text-gray-400 hover:text-blue-600 rounded-xl"><Eye size={18} /></button>
@@ -132,14 +131,10 @@ export default function PurchaseOrderPage() {
               <button onClick={() => setIsDetailModalOpen(false)} className="text-gray-400 hover:text-red-500">✕</button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-1 gap-4 mb-6">
               <div className="p-4 rounded-2xl bg-gray-50 border border-gray-100 flex items-center gap-4 dark:bg-gray-800">
                 <Truck className="text-blue-600" size={24} />
                 <div><p className="text-[9px] font-black text-gray-400 uppercase">Supplier</p><p className="text-sm font-black uppercase">{selectedPO.supplier?.nama}</p></div>
-              </div>
-              <div className="p-4 rounded-2xl bg-gray-50 border border-gray-100 flex items-center gap-4 dark:bg-gray-800">
-                <Banknote className="text-emerald-600" size={24} />
-                <div><p className="text-[9px] font-black text-gray-400 uppercase">Total Nilai PO</p><p className="text-sm font-black">Rp {(selectedPO.total_amount || 0).toLocaleString()}</p></div>
               </div>
             </div>
 
@@ -160,8 +155,8 @@ export default function PurchaseOrderPage() {
                       <td className="p-5 text-center font-black">{item.quantity} {item.unit?.name}</td>
                       <td className="p-5 text-right">
                         {selectedPO.status === 'draft' ? (
-                          <input 
-                            type="number" 
+                          <input
+                            type="number"
                             defaultValue={item.price || 0}
                             onBlur={(e) => handleUpdatePrice(item.id, Number(e.target.value))}
                             className="w-28 border-2 border-blue-50 rounded-xl px-2 py-1.5 text-right font-black outline-none focus:border-blue-500 transition-all dark:bg-gray-800"

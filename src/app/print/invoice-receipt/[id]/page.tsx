@@ -1,12 +1,14 @@
 "use client";
 import { useEffect, useState } from "react";
 import { invoiceReceiptService } from "@/services/invoiceReceiptService";
+import { unitService } from "@/services/unitService";
 import { useParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 
 export default function InvoiceReceiptPrintPage() {
     const { id } = useParams();
     const [receipt, setReceipt] = useState<any>(null);
+    const [units, setUnits] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -14,9 +16,16 @@ export default function InvoiceReceiptPrintPage() {
             if (!id) return;
             try {
                 // Determine if ID is string or array
-                const receiptId = Array.isArray(id) ? id[0] : id;
-                const res = await invoiceReceiptService.getById(parseInt(receiptId));
-                setReceipt(res);
+                const receiptId = Array.isArray(id) ? id[0] : (id as string);
+
+                // Parallel fetch
+                const [receiptRes, unitsRes] = await Promise.all([
+                    invoiceReceiptService.getById(parseInt(receiptId)),
+                    unitService.getAll()
+                ]);
+
+                setReceipt(receiptRes.data || receiptRes);
+                setUnits(Array.isArray(unitsRes) ? unitsRes : unitsRes.data || []);
             } catch (error) {
                 console.error("Failed to fetch receipt:", error);
             } finally {
@@ -101,13 +110,14 @@ export default function InvoiceReceiptPrintPage() {
                 </div>
             </div>
 
-            {/* Table */}
-            <div className="mb-8">
+            {/* Invoice Table */}
+            <div className="mb-6">
+                <p className="text-[10px] font-bold uppercase mb-2 text-gray-500">I. Rincian Faktur / Invoice</p>
                 <table className="w-full border-collapse border border-black text-xs">
                     <thead>
                         <tr className="bg-gray-100">
                             <th className="border border-black p-2 text-left uppercase">No. Faktur</th>
-                            <th className="border border-black p-2 text-left uppercase">Tanggal Faktur</th>
+                            <th className="border border-black p-2 text-left uppercase">Tanggal</th>
                             <th className="border border-black p-2 text-left uppercase">Jatuh Tempo</th>
                             <th className="border border-black p-2 text-right uppercase">Jumlah (RP)</th>
                         </tr>
@@ -126,13 +136,98 @@ export default function InvoiceReceiptPrintPage() {
                     </tbody>
                     <tfoot>
                         <tr className="bg-gray-50">
-                            <td colSpan={3} className="border border-black p-2 text-right font-black uppercase">Total Amount</td>
+                            <td colSpan={3} className="border border-black p-2 text-right font-black uppercase">Total Terfaktur</td>
                             <td className="border border-black p-2 text-right font-black text-sm">
                                 {Number(receipt.invoices?.reduce((sum: number, i: any) => sum + Number(i.amount), 0) || 0).toLocaleString("id-ID")}
                             </td>
                         </tr>
                     </tfoot>
                 </table>
+            </div>
+
+            {/* Product Details Table */}
+            <div className="mb-8">
+                <p className="text-[10px] font-bold uppercase mb-2 text-gray-500">II. Rincian Barang / Jasa (Ref: {receipt.purchase_order?.kode})</p>
+                <table className="w-full border-collapse border border-black text-[10px]">
+                    <thead>
+                        <tr className="bg-gray-50">
+                            <th className="border border-black p-1 text-center w-8">No</th>
+                            <th className="border border-black p-1 text-left">Nama Produk/Material</th>
+                            <th className="border border-black p-1 text-center">Qty</th>
+                            <th className="border border-black p-1 text-center">Satuan</th>
+                            <th className="border border-black p-1 text-right">Harga</th>
+                            <th className="border border-black p-1 text-right w-24">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {receipt.purchase_order?.items?.map((item: any, idx: number) => {
+                            // AKSI AKALI: Cari nama unit manual dari master units jika relasi kosong
+                            const getUnitName = () => {
+                                if (item.unit?.name) return item.unit.name;
+                                if (item.unit?.kode) return item.unit.kode;
+                                if (item.raw_material?.unit) return item.raw_material.unit;
+                                if (item.product?.unit?.name) return item.product.unit.name;
+
+                                // Cari di master units berdasarkan unit_id
+                                if (item.unit_id) {
+                                    const found = units.find(u => u.id === item.unit_id);
+                                    if (found) return found.name;
+                                }
+
+                                if (typeof item.unit === 'string') return item.unit;
+                                return "-";
+                            };
+
+                            return (
+                                <tr key={item.id}>
+                                    <td className="border border-black p-1 text-center text-gray-500">{idx + 1}</td>
+                                    <td className="border border-black p-1 font-medium">{item.raw_material?.name || item.product?.name || "-"}</td>
+                                    <td className="border border-black p-1 text-center font-bold">{Number(item.quantity).toLocaleString("id-ID")}</td>
+                                    <td className="border border-black p-1 text-center font-medium">
+                                        {getUnitName()}
+                                    </td>
+                                    <td className="border border-black p-1 text-right">{Number(item.price).toLocaleString("id-ID")}</td>
+                                    <td className="border border-black p-1 text-right font-bold">{Number(item.subtotal).toLocaleString("id-ID")}</td>
+                                </tr>
+                            );
+                        })}
+                    </tbody>
+                    <tfoot>
+                        <tr className="bg-gray-50">
+                            <td colSpan={5} className="border border-black p-1 text-right font-bold uppercase text-[9px]">Total Nilai Barang</td>
+                            <td className="border border-black p-1 text-right font-black">
+                                {Number(receipt.purchase_order?.items?.reduce((sum: number, i: any) => sum + Number(i.subtotal), 0) || 0).toLocaleString("id-ID")}
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            {/* III. DATA SUPPLIER (Moved below Items) */}
+            <div className="mb-8">
+                <p className="text-[10px] font-bold uppercase mb-2 text-gray-500 italic">III. Data Supplier</p>
+                <div className="grid grid-cols-2 gap-x-12 gap-y-1 text-[10px] border border-black p-3 rounded-sm">
+                    <div className="flex">
+                        <span className="w-24 font-bold uppercase tracking-tighter">Nama Supplier</span>
+                        <span className="mr-2">:</span>
+                        <span className="font-bold">{receipt.purchase_order?.supplier?.nama || "-"}</span>
+                    </div>
+                    <div className="flex">
+                        <span className="w-24 font-bold uppercase tracking-tighter">No. Telepon</span>
+                        <span className="mr-2">:</span>
+                        <span className="font-bold">{receipt.purchase_order?.supplier?.telepon || "-"}</span>
+                    </div>
+                    <div className="flex items-start">
+                        <span className="w-24 font-bold uppercase tracking-tighter">Alamat</span>
+                        <span className="mr-2">:</span>
+                        <span className="flex-1 font-bold">{receipt.purchase_order?.supplier?.alamat || "-"}</span>
+                    </div>
+                    <div className="flex">
+                        <span className="w-24 font-bold uppercase tracking-tighter">Email</span>
+                        <span className="mr-2">:</span>
+                        <span className="font-bold">{receipt.purchase_order?.supplier?.email || "-"}</span>
+                    </div>
+                </div>
             </div>
 
             {/* Notes */}
