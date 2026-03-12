@@ -119,6 +119,11 @@ export default function SalesOrderTable() {
             actions.push({ label: 'Approve', value: 'approved', color: 'blue', icon: Icons.CheckCircle });
             actions.push({ label: 'Cancel', value: 'cancelled', color: 'red', icon: Icons.XCircle });
         } else if (status === 'approved') {
+            actions.push({ label: 'Partial', value: 'partial', color: 'purple', icon: Icons.Truck });
+            actions.push({ label: 'Complete', value: 'completed', color: 'green', icon: Icons.CheckCheck });
+            actions.push({ label: 'Cancel', value: 'cancelled', color: 'red', icon: Icons.XCircle });
+        } else if (status === 'partial') {
+            actions.push({ label: 'Complete', value: 'completed', color: 'green', icon: Icons.CheckCheck });
             actions.push({ label: 'Cancel', value: 'cancelled', color: 'red', icon: Icons.XCircle });
         }
 

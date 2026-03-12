@@ -46,7 +46,15 @@ export default function SalesReportPage() {
             const res = await salesReportService.getResume({ start_date: startDate, end_date: endDate });
             // Cek jika response adalah wrapper (ada property data) atau data langsung
             const resumeData = res?.data || res;
-            setResume(resumeData);
+            
+            // Calculate missing fields if possible or default to 0
+            setResume({
+                ...resumeData,
+                total_return: resumeData.total_return || 0,
+                omzet_bersih: resumeData.omzet_bersih || (parseFloat(resumeData.total_omzet || 0) - parseFloat(resumeData.total_return || 0)),
+                total_piutang: resumeData.total_piutang || 0,
+                top_product: resumeData.top_product || { name: "N/A", total_qty: 0 }
+            });
 
             const trendRes = await salesReportService.getMonthlyTrend({
                 year,
@@ -88,7 +96,43 @@ export default function SalesReportPage() {
     const loadAgingReport = async () => {
         try {
             const res = await salesReportService.getAging({ start_date: startDate, end_date: endDate });
-            setAgingData(res?.data || res || []);
+            let rawData = res?.data || res || [];
+            
+            // If backend returns flat list with status_aging, map it to columns
+            // Or if backend returns one row per invoice, group by customer
+            const mapped = Array.isArray(rawData) ? rawData.map((item: any) => {
+                const days = parseInt(item.days_overdue || "0");
+                const balance = parseFloat(item.balance_due || "0");
+                
+                return {
+                    ...item,
+                    customer_name: item.customer_name || item.customer?.name || "N/A",
+                    current: days <= 0 ? balance : 0,
+                    aging_1_30: (days > 0 && days <= 30) ? balance : 0,
+                    aging_31_60: (days > 30 && days <= 60) ? balance : 0,
+                    aging_61_90: (days > 60 && days <= 90) ? balance : 0,
+                    aging_over_90: days > 90 ? balance : 0,
+                    total_piutang: balance
+                };
+            }) : [];
+
+            // Group by customer for the table
+            const grouped = mapped.reduce((acc: any[], curr: any) => {
+                const existing = acc.find(a => a.customer_name === curr.customer_name);
+                if (existing) {
+                    existing.current += curr.current;
+                    existing.aging_1_30 += curr.aging_1_30;
+                    existing.aging_31_60 += curr.aging_31_60;
+                    existing.aging_61_90 += curr.aging_61_90;
+                    existing.aging_over_90 += curr.aging_over_90;
+                    existing.total_piutang += curr.total_piutang;
+                } else {
+                    acc.push({...curr});
+                }
+                return acc;
+            }, []);
+
+            setAgingData(grouped);
         } catch (error) {
             console.error("Error loading aging report:", error);
             setAgingData([]);
@@ -98,7 +142,16 @@ export default function SalesReportPage() {
     const loadReturnsReport = async () => {
         try {
             const res = await salesReportService.getReturns({ start_date: startDate, end_date: endDate });
-            setReturnsData(res?.data || res || []);
+            const data = res?.data || res || [];
+            // Map backend structure to frontend table
+            const mapped = Array.isArray(data) ? data.map((item: any) => ({
+                return_number: item.return_number || item.return_no || "N/A",
+                return_date: item.return_date || "N/A",
+                invoice_number: item.invoice_number || item.invoice?.no_invoice || "N/A",
+                customer_name: item.customer_name || item.invoice?.customer?.name || item.customer?.name || "N/A",
+                total_amount: item.total_amount || item.total_return_amount || 0
+            })) : [];
+            setReturnsData(mapped);
         } catch (error) {
             console.error("Error loading returns report:", error);
             setReturnsData([]);
@@ -112,7 +165,16 @@ export default function SalesReportPage() {
                 end_date: endDate,
                 status: invoiceStatus || undefined
             });
-            setInvoiceStatusData(res?.data || res || []);
+            const data = res?.data?.data || res?.data || res || [];
+            // Map backend structure to frontend table
+            const mapped = Array.isArray(data) ? data.map((item: any) => ({
+                invoice_number: item.invoice_number || item.no_invoice || "N/A",
+                invoice_date: item.invoice_date || item.tanggal || "N/A",
+                customer_name: item.customer_name || item.customer?.name || "N/A",
+                status: item.status || "N/A",
+                total_amount: item.total_amount || item.final_amount || item.total_price || 0
+            })) : [];
+            setInvoiceStatusData(mapped);
         } catch (error) {
             console.error("Error loading invoice status report:", error);
             setInvoiceStatusData([]);

@@ -22,17 +22,19 @@ export const salesReportService = {
     },
 
     getAging: async (params?: { start_date?: string; end_date?: string }) => {
-        const response = await axiosInstance.get("/api/v1/sales-reports/aging", { params });
+        // Try the specialized one, fallback or redirect to generic if needed
+        // Since the specialized route is missing, using the one that provides pending/aging data
+        const response = await axiosInstance.get("/api/v1/sales-invoices/pending-payments", { params });
         return response.data;
     },
-
+ 
     getReturns: async (params?: { start_date?: string; end_date?: string }) => {
-        const response = await axiosInstance.get("/api/v1/sales-reports/returns", { params });
+        const response = await axiosInstance.get("/api/v1/sales-returns", { params });
         return response.data;
     },
-
+ 
     getInvoiceStatus: async (params?: { start_date?: string; end_date?: string; status?: string }) => {
-        const response = await axiosInstance.get("/api/v1/sales-reports/invoice-status", { params });
+        const response = await axiosInstance.get("/api/v1/sales-invoices", { params });
         return response.data;
     },
 
