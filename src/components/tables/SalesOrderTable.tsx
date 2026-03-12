@@ -168,14 +168,14 @@ export default function SalesOrderTable() {
     if (loading) return <div className="p-10 text-center">Memuat data pesanan...</div>;
 
     return (
-        <div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+        <div className="w-full max-w-full overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
             <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-800">
                 <h3 className="text-lg font-bold">Surat Pesanan Konsumen (SPK)</h3>
                 <Button onClick={openCreateModal} size="sm">+ Buat SPK Baru</Button>
             </div>
 
-            <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
+            <div className="overflow-x-auto w-full">
+                <table className="w-full text-left border-collapse whitespace-nowrap">
                     <thead className="bg-gray-50/50 dark:bg-white/5">
                         <tr>
                             <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">No. SPK</th>

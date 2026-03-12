@@ -5,7 +5,7 @@ import SalesInvoiceTable from "@/components/tables/SalesInvoiceTable";
 
 export default function SalesInvoicePage() {
     return (
-        <div className="p-4 md:p-6 2xl:p-10">
+        <div className="p-4 md:p-6 2xl:p-10 w-full max-w-full overflow-hidden">
             <PageBreadcrumb pageName="Invoice Penjualan (Tagihan)" />
             <div className="mt-6">
                 <SalesInvoiceTable />

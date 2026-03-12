@@ -252,8 +252,8 @@ export default function SalesReportPage() {
     }];
 
     return (
-        <div className="p-4 md:p-8 space-y-8 bg-gray-50/30 min-h-screen font-sans">
-            <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
+        <div className="p-4 md:p-8 space-y-8 bg-gray-50/30 min-h-screen font-sans w-full max-w-full">
+            <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-6 relative">
                 <div className="absolute right-0 top-0 w-64 h-64 bg-indigo-50/50 rounded-full -mr-32 -mt-32 blur-3xl"></div>
                 <div className="flex items-center gap-6 relative z-10">
                     <div className="p-5 bg-indigo-600 rounded-3xl shadow-xl shadow-indigo-100"><TrendingUp className="text-white" size={32} /></div>
@@ -264,8 +264,8 @@ export default function SalesReportPage() {
                         </p>
                     </div>
                 </div>
-                <div className="flex flex-wrap items-center gap-4 relative z-10">
-                    <div className="flex p-1.5 bg-gray-100 rounded-2xl">
+                <div className="flex items-center gap-4 relative z-10 min-w-0 overflow-x-auto">
+                    <div className="flex p-1.5 bg-gray-100 rounded-2xl shrink-0">
                         {[
                             { id: 'summary', icon: TrendingUp, label: 'Ringkasan' },
                             { id: 'product', icon: Package, label: 'Barang' },
@@ -405,9 +405,9 @@ export default function SalesReportPage() {
             )}
 
             {(activeTab === 'product' || activeTab === 'customer' || activeTab === 'aging' || activeTab === 'returns' || activeTab === 'invoice-status') && (
-                <div className="bg-white rounded-[3rem] shadow-sm border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left">
+                <div className="bg-white rounded-[3rem] shadow-sm border border-gray-100 w-full max-w-full overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700">
+                    <div className="overflow-x-auto w-full">
+                        <table className="w-full text-left whitespace-nowrap">
                             <thead>
                                 <tr className="bg-gray-50/50 border-b border-gray-100">
                                     {(activeTab === 'product' || activeTab === 'customer' || activeTab === 'aging') && (

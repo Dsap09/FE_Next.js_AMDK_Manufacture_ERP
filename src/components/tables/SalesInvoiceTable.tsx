@@ -140,7 +140,7 @@ export default function SalesInvoiceTable() {
     if (loading) return <div className="p-10 text-center text-gray-500 animate-pulse font-bold uppercase tracking-widest">Sinkronisasi Data Tagihan...</div>;
 
     return (
-        <div className="rounded-3xl border border-gray-100 bg-white shadow-xl dark:border-gray-800 dark:bg-gray-900 overflow-hidden">
+        <div className="w-full max-w-full rounded-3xl border border-gray-100 bg-white shadow-xl dark:border-gray-800 dark:bg-gray-900 overflow-hidden">
             <div className="flex flex-col md:flex-row items-center justify-between p-8 gap-6 border-b border-gray-50 dark:border-gray-800 bg-gradient-to-r from-blue-600/5 to-transparent">
                 <div>
                     <h3 className="text-2xl font-black text-gray-800 dark:text-white flex items-center gap-3">
@@ -156,8 +156,8 @@ export default function SalesInvoiceTable() {
                 </div>
             </div>
 
-            <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
+            <div className="overflow-x-auto w-full">
+                <table className="w-full text-left border-collapse whitespace-nowrap">
                     <thead>
                         <tr className="bg-gray-50/50 dark:bg-white/5">
                             <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Doc Info</th>
