@@ -43,17 +43,43 @@ export default function SalesReportPage() {
 
     const loadSummary = async () => {
         try {
-            const res = await salesReportService.getResume({ start_date: startDate, end_date: endDate });
-            // Cek jika response adalah wrapper (ada property data) atau data langsung
+            // Fetch everything in parallel to populate the summary
+            const [res, returnsRes, agingRes, productRes] = await Promise.all([
+                salesReportService.getResume({ start_date: startDate, end_date: endDate }),
+                salesReportService.getReturns({ start_date: startDate, end_date: endDate }),
+                salesReportService.getAging({ start_date: startDate, end_date: endDate }),
+                salesReportService.getByProduct({ start_date: startDate, end_date: endDate })
+            ]);
+
             const resumeData = res?.data || res;
+
+            // Aggregate Returns
+            const returnsList = returnsRes?.data || returnsRes || [];
+            const totalReturn = Array.isArray(returnsList) 
+                ? returnsList.reduce((sum: number, item: any) => sum + parseFloat(item.total_return_amount || item.total_amount || 0), 0)
+                : 0;
+
+            // Aggregate Piutang (Pending Payments)
+            const agingList = agingRes?.data || agingRes || [];
+            const totalPiutang = Array.isArray(agingList)
+                ? agingList.reduce((sum: number, item: any) => sum + parseFloat(item.balance_due || 0), 0)
+                : 0;
+
+            // Find Top Product
+            const productList = productRes?.data || productRes || [];
+            const topProdRaw = Array.isArray(productList) && productList.length > 0
+                ? [...productList].sort((a, b) => parseFloat(b.total_qty || 0) - parseFloat(a.total_qty || 0))[0]
+                : null;
             
-            // Calculate missing fields if possible or default to 0
             setResume({
                 ...resumeData,
-                total_return: resumeData.total_return || 0,
-                omzet_bersih: resumeData.omzet_bersih || (parseFloat(resumeData.total_omzet || 0) - parseFloat(resumeData.total_return || 0)),
-                total_piutang: resumeData.total_piutang || 0,
-                top_product: resumeData.top_product || { name: "N/A", total_qty: 0 }
+                total_return: totalReturn,
+                total_piutang: totalPiutang,
+                omzet_bersih: parseFloat(resumeData.total_omzet || 0) - totalReturn,
+                top_product: topProdRaw ? { 
+                    name: topProdRaw.product_name || topProdRaw.name, 
+                    total_qty: topProdRaw.total_qty 
+                } : { name: "N/A", total_qty: 0 }
             });
 
             const trendRes = await salesReportService.getMonthlyTrend({
@@ -61,7 +87,8 @@ export default function SalesReportPage() {
                 start_date: startDate,
                 end_date: endDate
             });
-            setTrendData(trendRes?.data || trendRes || []);
+            const rawTrend = trendRes?.data || trendRes || [];
+            setTrendData(Array.isArray(rawTrend) ? rawTrend : []);
         } catch (error) {
             console.error("Error loading summary:", error);
             setResume(null);
@@ -72,7 +99,8 @@ export default function SalesReportPage() {
     const loadProductReport = async () => {
         try {
             const res = await salesReportService.getByProduct({ start_date: startDate, end_date: endDate });
-            setProductData(res?.data || res || []);
+            const rawProduct = res?.data || res || [];
+            setProductData(Array.isArray(rawProduct) ? rawProduct : []);
         } catch (error) {
             console.error("Error loading product report:", error);
             setProductData([]);
@@ -86,7 +114,8 @@ export default function SalesReportPage() {
                 end_date: endDate,
                 payment_status: paymentStatus || undefined
             });
-            setCustomerData(res?.data || res || []);
+            const rawCustomer = res?.data || res || [];
+            setCustomerData(Array.isArray(rawCustomer) ? rawCustomer : []);
         } catch (error) {
             console.error("Error loading customer report:", error);
             setCustomerData([]);
@@ -97,13 +126,13 @@ export default function SalesReportPage() {
         try {
             const res = await salesReportService.getAging({ start_date: startDate, end_date: endDate });
             let rawData = res?.data || res || [];
-            
+
             // If backend returns flat list with status_aging, map it to columns
             // Or if backend returns one row per invoice, group by customer
             const mapped = Array.isArray(rawData) ? rawData.map((item: any) => {
                 const days = parseInt(item.days_overdue || "0");
                 const balance = parseFloat(item.balance_due || "0");
-                
+
                 return {
                     ...item,
                     customer_name: item.customer_name || item.customer?.name || "N/A",
@@ -127,7 +156,7 @@ export default function SalesReportPage() {
                     existing.aging_over_90 += curr.aging_over_90;
                     existing.total_piutang += curr.total_piutang;
                 } else {
-                    acc.push({...curr});
+                    acc.push({ ...curr });
                 }
                 return acc;
             }, []);
@@ -243,10 +272,11 @@ export default function SalesReportPage() {
         tooltip: { y: { formatter: (v) => `Rp ${v.toLocaleString()}` } }
     };
 
+    const safeTrend = Array.isArray(trendData) ? trendData : [];
     const chartSeries = [{
         name: 'Omzet',
         data: Array(12).fill(0).map((_, i) => {
-            const d = trendData.find(m => m.bulan === i + 1);
+            const d = safeTrend.find((m: any) => m?.bulan === i + 1);
             return d ? parseFloat(d.total_omzet) : 0;
         })
     }];
