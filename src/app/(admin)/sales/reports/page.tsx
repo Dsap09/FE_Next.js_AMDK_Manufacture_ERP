@@ -75,7 +75,12 @@ export default function SalesReportPage() {
                 ...resumeData,
                 total_return: totalReturn,
                 total_piutang: totalPiutang,
+                total_omzet: parseFloat(resumeData.total_omzet || 0),
                 omzet_bersih: parseFloat(resumeData.total_omzet || 0) - totalReturn,
+                top_customer: resumeData.top_customer ? {
+                    name: resumeData.top_customer.name,
+                    total_amount: resumeData.top_customer.total
+                } : { name: "N/A", total_amount: 0 },
                 top_product: topProdRaw ? { 
                     name: topProdRaw.product_name || topProdRaw.name, 
                     total_qty: topProdRaw.total_qty 
@@ -130,7 +135,10 @@ export default function SalesReportPage() {
             // If backend returns flat list with status_aging, map it to columns
             // Or if backend returns one row per invoice, group by customer
             const mapped = Array.isArray(rawData) ? rawData.map((item: any) => {
-                const days = parseInt(item.days_overdue || "0");
+                const dueDate = new Date(item.due_date);
+                const today = new Date();
+                const diffTime = today.getTime() - dueDate.getTime();
+                const days = Math.floor(diffTime / (1000 * 60 * 60 * 24));
                 const balance = parseFloat(item.balance_due || "0");
 
                 return {
@@ -156,7 +164,15 @@ export default function SalesReportPage() {
                     existing.aging_over_90 += curr.aging_over_90;
                     existing.total_piutang += curr.total_piutang;
                 } else {
-                    acc.push({ ...curr });
+                    acc.push({ 
+                        customer_name: curr.customer_name,
+                        current: curr.current,
+                        aging_1_30: curr.aging_1_30,
+                        aging_31_60: curr.aging_31_60,
+                        aging_61_90: curr.aging_61_90,
+                        aging_over_90: curr.aging_over_90,
+                        total_piutang: curr.total_piutang
+                    });
                 }
                 return acc;
             }, []);
@@ -276,7 +292,7 @@ export default function SalesReportPage() {
     const chartSeries = [{
         name: 'Omzet',
         data: Array(12).fill(0).map((_, i) => {
-            const d = safeTrend.find((m: any) => m?.bulan === i + 1);
+            const d = safeTrend.find((m: any) => parseInt(m?.bulan) === i + 1);
             return d ? parseFloat(d.total_omzet) : 0;
         })
     }];
@@ -505,7 +521,7 @@ export default function SalesReportPage() {
                                                                         <td className="px-10 py-5 uppercase">{item.customer_name}</td>
                                                                         <td className="px-10 py-5 text-center">{item.total_orders}</td>
                                                                         <td className="px-10 py-5 text-right font-black">Rp {Number(item.total_kontribusi).toLocaleString()}</td>
-                                                                        <td className="px-10 py-5 text-right text-rose-500">Rp {Number(item.total_piutang).toLocaleString()}</td>
+                                                                        <td className="px-10 py-5 text-right text-rose-500">Rp {Number(item.total_piutang || 0).toLocaleString()}</td>
                                                                     </>
                                                                 )}
                                                                 {activeTab === 'aging' && (

@@ -76,7 +76,7 @@ export default function ProductTable() {
                 <td className="px-6 py-4 text-sm font-bold">{p.kode}</td>
                 <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{p.name}</td>
                 <td className="px-6 py-4 text-sm font-bold text-green-600">
-                  Rp {p.harga.toLocaleString("id-ID")}
+                  Rp {(p.harga ? Number(p.harga) : 0).toLocaleString("id-ID")}
                 </td>
                 <td className="px-6 py-4 text-right flex justify-end gap-3">
                   <button onClick={() => openEditModal(p)} className="text-blue-500 hover:underline text-sm font-bold">Edit</button>

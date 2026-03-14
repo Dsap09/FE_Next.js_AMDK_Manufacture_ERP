@@ -4,12 +4,12 @@ import Button from "../ui/button/Button";
 import { unitService } from "@/services/unitService";
 
 export default function ProductModal({ isOpen, onClose, onSave, initialData }: any) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<any>({
     kode: "",
     name: "",
     unit_id: "",
-    tipe: "", // Pastikan menggunakan 'type' bukan 'tipe'
-    volume: 0, // Inisialisasi sebagai Number
+    tipe: "", 
+    volume: 0, 
     harga: 0,
     is_returnable: true
   });
@@ -64,7 +64,7 @@ export default function ProductModal({ isOpen, onClose, onSave, initialData }: a
           <div>
             <label className="mb-1 block text-sm font-medium">Tipe</label>
             <input type="text" className="w-full rounded-lg border border-gray-200 p-2.5 dark:bg-gray-800 dark:border-gray-700"
-              value={formData.type} onChange={(e) => setFormData({...formData, tipe: e.target.value})} placeholder="Contoh: Galon" />
+              value={formData.tipe} onChange={(e) => setFormData({...formData, tipe: e.target.value})} placeholder="Contoh: Galon" />
           </div>
 
           <div>

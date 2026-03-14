@@ -22,8 +22,6 @@ export const salesReportService = {
     },
 
     getAging: async (params?: { start_date?: string; end_date?: string }) => {
-        // Try the specialized one, fallback or redirect to generic if needed
-        // Since the specialized route is missing, using the one that provides pending/aging data
         const response = await axiosInstance.get("/api/v1/sales-invoices/pending-payments", { params });
         return response.data;
     },

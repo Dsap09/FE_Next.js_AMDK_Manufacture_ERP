@@ -108,11 +108,31 @@ Mengelola proses manufaktur barang jadi.
 
 ### Data Master
 Pusat pengaturan data dasar yang digunakan oleh seluruh modul.
-- **Data Customer & Supplier**: Pengelolaan mitra bisnis.
-- **Data Produk**: Detail spesifikasi produk.
-- **Chart of Accounts (COA)**: Daftar akun untuk kebutuhan akuntansi.
 
-![Data Master](./public/docs/data_master.png)
+#### 1. Data Produk
+Mengelola informasi produk, termasuk kode, nama, tipe, volume, dan harga dasar.
+![Data Produk](./public/docs/product_page.png)
+
+#### 2. Data Customer & Supplier
+Pengelolaan mitra bisnis untuk transaksi penjualan dan pembelian.
+![Data Customer](./public/docs/customer_page.png)
+![Data Supplier](./public/docs/supplier_page.png)
+
+#### 3. Data Gudang (Warehouse)
+Pencatatan lokasi penyimpanan barang.
+![Data Warehouse](./public/docs/warehouse_page.png)
+
+#### 4. Data Satuan (Unit)
+Daftar satuan ukuran yang digunakan untuk produk (Misal: Pcs, Box, Galon).
+![Data Satuan](./public/docs/unit_page.png)
+
+#### 5. Pengelolaan User
+Pengaturan akun pengguna dan hak akses dalam sistem.
+![Data User](./public/docs/user_page.png)
+
+#### 6. Chart of Accounts (COA)
+Daftar akun untuk kebutuhan pemetaan transaksi ke laporan keuangan.
+![COA](./public/docs/data_master.png)
 
 ### Keuangan & Akuntansi
 Monitoring hutang, piutang, dan pencatatan jurnal.
